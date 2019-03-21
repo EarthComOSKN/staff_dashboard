@@ -16,7 +16,7 @@ app.use(
   })
 );
 
-const staffQuery = date => { 
+const staffQuery = date => {
   const ans = `select * from dashboard.staff where DATEPART(mm,theDate)=${date.getUTCMonth() +
     1} and DATEPART(yy,theDate)=${date.getUTCFullYear()} and DATEPART(dd,theDate)=${date.getUTCDate()};`;
   console.log(ans);
@@ -53,7 +53,9 @@ app.post("/setStaff", function(req, res) {
   request.query(staffQuery(date), function(err, result) {
     console.log(result);
     if (result.recordset.length === 0) {
-      const addStaffData = `INSERT INTO staff VALUES ('${moment(date).format('YYYY-MM-DD HH:mm:ss')}',${full_pick},${full_decoct},${full_dis},${part_pick},${part_decoct});`;
+      const addStaffData = `INSERT INTO staff VALUES ('${moment(date).format(
+        "YYYY-MM-DD HH:mm:ss"
+      )}',${full_pick},${full_decoct},${full_dis},${part_pick},${part_decoct});`;
       console.log(addStaffData);
       request.query(addStaffData, function(err, result) {
         // if (err) return next(err);
@@ -64,7 +66,7 @@ app.post("/setStaff", function(req, res) {
         // const overallData = overall(data);
         // // console.log(realTimeData);
         // res.send(realTimeData);
-        console.log('add',result);
+        console.log("add", result);
         res.send({ result });
       });
     } else {
@@ -72,7 +74,7 @@ app.post("/setStaff", function(req, res) {
         1} and DATEPART(yy,theDate)=${date.getUTCFullYear()} and DATEPART(dd,theDate)=${date.getUTCDate()};`;
       request.query(updateStaffData, function(err, result) {
         // if (err) return next(err);
-        console.log('update');
+        console.log("update");
         // var staffData = result.recordset;
         // console.log(data);
         // const overallData = overall(data);
@@ -83,32 +85,40 @@ app.post("/setStaff", function(req, res) {
     }
   });
 });
+const mockData = {
+  theDate: null,
+  full_pick: 0,
+  full_decoct: 0,
+  full_dis: 0,
+  part_decoct: 0,
+  part_pick: 0
+};
 
 const monthQuery = date => {
   return `select * from dashboard.staff WHERE DATEPART(mm,theDate)=${date.getUTCMonth() +
     1} and DATEPART(yy,theDate)=${date.getUTCFullYear()} Order by theDate  ASC;`;
 };
 
-const monthData = (data) => {
-  const staffDict = {}
+const monthData = data => {
+  const staffDict = {};
+  for (let i = 0; i < 24; i++)
+    staffDict[i] = JSON.parse(JSON.stringify(mockData));
   data.forEach(staff => {
-    const date = new Date(staff.theDate)
-    const h = date.getUTCHours()
-    staffDict[h] = staff
-  })
-  return staffDict
-}
-
-
+    const date = new Date(staff.theDate);
+    const h = date.getUTCHours();
+    staffDict[h] = staff;
+  });
+  return staffDict;
+};
 
 app.post("/getStaffByMonth", function(req, res) {
   const request = db.request();
-  const date = new Date(req.body.date)
+  const date = new Date(req.body.date);
   request.query(monthQuery(date), function(err, result) {
     // if (err) return next(err);
 
     var staffData = result.recordset;
-    const monthlyData = monthData(staffData)
+    const monthlyData = monthData(staffData);
     // console.log(data);
     // const overallData = overall(data);
     // // console.log(realTimeData);
@@ -117,26 +127,69 @@ app.post("/getStaffByMonth", function(req, res) {
   });
 });
 
+const threeMonthQuery = date => {
+  const m1 = moment(date).toDate();
+  const m2 = moment(date)
+    .subtract(1, "month")
+    .toDate();
+  const m3 = moment(date)
+    .subtract(2, "month")
+    .toDate();
+  // console.log(m1.toDate(),m2.toDate(),m3.toDate());
+  return `select * from dashboard.staff
+  WHERE DATEPART(mm,theDate)=${m1.getMonth() +
+    1} and DATEPART(yy,theDate)=${m1.getUTCFullYear()} or DATEPART(mm,theDate)=${m2.getMonth() +
+    1} and DATEPART(yy,theDate)=${m2.getUTCFullYear()} or DATEPART(mm,theDate)=${m3.getMonth() +
+    1} and DATEPART(yy,theDate)=${m3.getUTCFullYear()} Order by theDate  ASC;`;
+};
 
-const threeMonthData = (data) => {
-  const staffDict = {}
+dayDict = {
+  0: { ...mockData },
+  1: { ...mockData },
+  2: { ...mockData },
+  3: { ...mockData },
+  4: { ...mockData },
+  5: { ...mockData },
+  6: { ...mockData }
+};
+
+const threeMonthData = (data, date) => {
+  const m1 = moment(date).toDate();
+  const m2 = moment(date)
+    .subtract(1, "month")
+    .toDate();
+  const m3 = moment(date)
+    .subtract(2, "month")
+    .toDate();
+  const k1 = `${m1.getUTCMonth()}_${m1.getUTCFullYear()}`;
+  const k2 = `${m2.getUTCMonth()}_${m2.getUTCFullYear()}`;
+  const k3 = `${m3.getUTCMonth()}_${m3.getUTCFullYear()}`;
+  const staffDict = {};
+  staffDict[k1] = JSON.parse(JSON.stringify(dayDict));
+  staffDict[k2] = JSON.parse(JSON.stringify(dayDict));
+  staffDict[k3] = JSON.parse(JSON.stringify(dayDict));
   data.forEach(staff => {
-    const date = new Date(staff.theDate)
-    const d = date.getUTCDate()
-    staffDict[d] = staff
-  })
-  return staffDict
-}
-
+    const date = new Date(staff.theDate);
+    const m = date.getUTCMonth();
+    const y = date.getUTCFullYear();
+    const d = date.getUTCDay();
+    staffDict[`${m}_${y}`][d].full_pick += staff.full_pick 
+    staffDict[`${m}_${y}`][d].full_decoct += staff.full_decoct 
+    staffDict[`${m}_${y}`][d].full_dis += staff.full_dis 
+    staffDict[`${m}_${y}`][d].part_pick += staff.part_pick 
+    staffDict[`${m}_${y}`][d].part_decoct += staff.part_decoct 
+  });
+  return staffDict;
+};
 
 app.post("/getStaffByThreeMonth", function(req, res) {
   const request = db.request();
-  const date = new Date(req.body.date)
-  request.query(monthQuery(date), function(err, result) {
+  const date = new Date(req.body.date);
+  request.query(threeMonthQuery(date), function(err, result) {
     // if (err) return next(err);
 
     var staffData = result.recordset;
-    const monthlyData = threeMonthData(staffData)
+    const monthlyData = threeMonthData(staffData, date);
     // console.log(data);
     // const overallData = overall(data);
     // // console.log(realTimeData);
@@ -144,8 +197,6 @@ app.post("/getStaffByThreeMonth", function(req, res) {
     res.send(monthlyData);
   });
 });
-
-
 
 var server = app.listen(5001, function() {
   console.log("Server is running..");
