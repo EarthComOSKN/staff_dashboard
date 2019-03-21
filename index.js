@@ -94,7 +94,7 @@ const monthData = (data) => {
   data.forEach(staff => {
     const date = new Date(staff.theDate)
     const h = date.getUTCHours()
-    staffDict[h] = data
+    staffDict[h] = staff
   })
   return staffDict
 }
@@ -123,7 +123,7 @@ const threeMonthData = (data) => {
   data.forEach(staff => {
     const date = new Date(staff.theDate)
     const d = date.getUTCDate()
-    staffDict[h] = data
+    staffDict[h] = staff
   })
   return staffDict
 }
