@@ -84,6 +84,58 @@ app.post("/setStaff", function(req, res) {
   });
 });
 
+const monthQuery = date => {
+  return `select * from dashboard.staff WHERE DATEPART(mm,theDate)=${date.getUTCMonth() +
+    1} and DATEPART(yy,theDate)=${date.getUTCFullYear()} Order by theDate  ASC;`;
+};
+
+const monthData = (data) => {
+  const staffDict = {}
+  data.forEach(staff => {
+    const date = new Date(staff.theDate)
+    const h = date.getUTCHours
+    staffDict[h] = data
+  })
+  return staffDict
+}
+
+
+
+app.post("/getStaffByMonth", function(req, res) {
+  const request = db.request();
+  const date = new Date(req.body.date)
+  request.query(monthQuery(date), function(err, result) {
+    // if (err) return next(err);
+
+    var staffData = result.recordset;
+    const monthlyData = monthData(staffData)
+    // console.log(data);
+    // const overallData = overall(data);
+    // // console.log(realTimeData);
+    // res.send(realTimeData);
+    res.send(monthlyData);
+  });
+});
+
+
+app.post("/getStaffByThreeMonth", function(req, res) {
+  const request = db.request();
+  const date = new Date(req.body.date)
+  request.query(monthQuery(date), function(err, result) {
+    // if (err) return next(err);
+
+    var staffData = result.recordset;
+    const monthlyData = threeMonthData(staffData)
+    // console.log(data);
+    // const overallData = overall(data);
+    // // console.log(realTimeData);
+    // res.send(realTimeData);
+    res.send(monthlyData);
+  });
+});
+
+
+
 var server = app.listen(5001, function() {
   console.log("Server is running..");
 });
