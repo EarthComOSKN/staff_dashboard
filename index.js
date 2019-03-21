@@ -93,7 +93,7 @@ const monthData = (data) => {
   const staffDict = {}
   data.forEach(staff => {
     const date = new Date(staff.theDate)
-    const h = date.getUTCHours
+    const h = date.getUTCHours()
     staffDict[h] = data
   })
   return staffDict
@@ -116,6 +116,17 @@ app.post("/getStaffByMonth", function(req, res) {
     res.send(monthlyData);
   });
 });
+
+
+const threeMonthData = (data) => {
+  const staffDict = {}
+  data.forEach(staff => {
+    const date = new Date(staff.theDate)
+    const d = date.getUTCDate()
+    staffDict[h] = data
+  })
+  return staffDict
+}
 
 
 app.post("/getStaffByThreeMonth", function(req, res) {
