@@ -5,7 +5,7 @@ var bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 var cors = require("cors");
-var moment = require("moment");
+var moment = require("moment-timezone");
 
 app.use(
   cors({
@@ -25,7 +25,8 @@ const staffQuery = date => {
 
 app.get("/getStaff", function(req, res) {
   const request = db.request();
-  request.query(staffQuery(new Date()), function(err, result) {
+  const date = moment.tz(new Date(),"Asia/Bangkok").toDate()
+  request.query(staffQuery(date), function(err, result) {
     // if (err) return next(err);
 
     var staffData = result.recordset;
@@ -101,12 +102,13 @@ const monthQuery = date => {
 
 const monthData = data => {
   const staffDict = {};
-  for (let i = 0; i < 24; i++)
+  for (let i = 1; i < 32; i++)
     staffDict[i] = JSON.parse(JSON.stringify(mockData));
   data.forEach(staff => {
     const date = new Date(staff.theDate);
-    const h = date.getUTCHours();
-    staffDict[h] = staff;
+    console.log(date);
+    const d = date.getUTCDate();
+    staffDict[d] = staff;
   });
   return staffDict;
 };
