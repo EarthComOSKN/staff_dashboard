@@ -107,6 +107,7 @@ const monthData = data => {
   data.forEach(staff => {
     const date = new Date(staff.theDate);
     console.log(date);
+    console.log(date.getUTCDate());
     const d = date.getUTCDate();
     staffDict[d] = staff;
   });
